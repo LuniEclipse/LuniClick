@@ -3,21 +3,15 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import sqlite3
 import random
 import os
-from flask import Flask
-import threading
 
-# ===== НАСТРОЙКИ =====
-TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'
+TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'  # Вставьте токен
 ADMIN_IDS = [7778727422]
-# ====================
 
 bot = telebot.TeleBot(TOKEN)
 
-# База данных
 conn = sqlite3.connect('clicker.db', check_same_thread=False)
 cursor = conn.cursor()
 
-# Таблица пользователей
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
@@ -30,8 +24,6 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT
 )
 ''')
-
-# Таблица инвентаря
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS inventory (
     user_id INTEGER,
@@ -77,7 +69,6 @@ def main_keyboard():
     )
     return markup
 
-# Клавиатура для магазина скиллов
 def skill_shop_keyboard(user_id):
     cursor.execute('SELECT click_level, coin_level, crit_level, luck_level, coins FROM users WHERE user_id = ?', (user_id,))
     click_lvl, coin_lvl, crit_lvl, luck_lvl, coins = cursor.fetchone()
@@ -160,7 +151,6 @@ def use_item(user_id, username, item_index):
             gain = random.randint(1, 3)
             cursor.execute('UPDATE inventory SET quantity = quantity + ? WHERE user_id = ? AND item_name = ?', (gain, user_id, '🎲 Кость'))
             result_text += f"🎲 +{gain} 🎲 Кость!"
-    
     elif item_name == '🥡 Супер Бокс':
         coins_gain = random.randint(500, 5000)
         cursor.execute('UPDATE users SET coins = coins + ? WHERE user_id = ?', (coins_gain, user_id))
@@ -169,7 +159,6 @@ def use_item(user_id, username, item_index):
             gain = random.randint(1, 3)
             cursor.execute('UPDATE inventory SET quantity = quantity + ? WHERE user_id = ? AND item_name = ?', (gain, user_id, '🎁 Бокс'))
             result_text += f"\n🎁 Бонус! +{gain} 🎁 Бокс!"
-    
     elif item_name == '🎲 Кость':
         roll = random.randint(1, 6)
         if roll == 6:
@@ -178,7 +167,6 @@ def use_item(user_id, username, item_index):
             result_text += f"🎲 6! Джекпот! +{coins_gain}💰"
         else:
             result_text += f"🎲 Выпало {roll}"
-    
     elif item_name == '🪎 Сундук':
         coins_gain = random.randint(500, 3000)
         cursor.execute('UPDATE users SET coins = coins + ? WHERE user_id = ?', (coins_gain, user_id))
@@ -187,13 +175,11 @@ def use_item(user_id, username, item_index):
             gain = random.randint(1, 2)
             cursor.execute('UPDATE inventory SET quantity = quantity + ? WHERE user_id = ? AND item_name = ?', (gain, user_id, '🎁 Бокс'))
             result_text += f"\n📦 +{gain} 🎁 Бокс!"
-    
     elif item_name == '💜 Ультра Харт':
         cursor.execute('UPDATE users SET click_level = click_level + 1, coin_level = coin_level + 1 WHERE user_id = ?', (user_id,))
         result_text += "✨ Все скиллы +1!"
-    
     elif item_name in ['💟 Холик', '🧠 Мозг']:
-        result_text += "✨ Коллекционный предмет! Он не имеет эффекта, но украшает твою коллекцию ✨"
+        result_text += "✨ Коллекционный предмет! ✨"
     
     conn.commit()
     return True, result_text
@@ -274,7 +260,6 @@ def use_command(message):
         
         if success:
             show_inventory(user_id, message.chat.id)
-    
     except:
         bot.reply_to(message, "❌ Ошибка!")
 
@@ -302,7 +287,6 @@ def give_item_command(message):
         
         if success:
             show_inventory(user_id, message.chat.id)
-    
     except:
         bot.reply_to(message, "❌ Ошибка!")
 
@@ -345,7 +329,6 @@ def callback(call):
     
     click_lvl, coin_lvl, crit_lvl, luck_lvl, clicks, coins, username = result
     
-    # КЛИК
     if call.data == "click":
         gain = click_lvl
         coins_gain = coin_lvl
@@ -376,38 +359,32 @@ def callback(call):
             f"📊 @{username}:\n🔨 {clicks} кликов\n💰 {coins} монет\n\n+{gain}/{coins_gain}{crit_text}{luck_text}",
             call.message.chat.id, call.message.message_id, reply_markup=main_keyboard())
     
-    # МАГАЗИН СКИЛЛОВ
     elif call.data == "shop":
         markup, cp, cnp, crp, lp = skill_shop_keyboard(user_id)
         bot.edit_message_text(
             f"✨ СКИЛЛУХИ\n💰 {coins}\n\n⚡ Клики ур.{click_lvl} - {int(cp)}💰\n💰 Монеты ур.{coin_lvl} - {int(cnp)}💰\n🪓 Крит ур.{crit_lvl} - {int(crp)}💰\n🍀 Удача ур.{luck_lvl} - {int(lp)}💰",
             call.message.chat.id, call.message.message_id, reply_markup=markup)
     
-    # ИНВЕНТАРЬ
     elif call.data == "inventory":
         init_inventory(user_id)
         show_inventory(user_id, call.message.chat.id, call.message.message_id)
     
-    # МАГАЗИН ПРЕДМЕТОВ
     elif call.data == "item_shop":
         bot.edit_message_text(
             "🏩 МАГАЗИН\n\n🎁 Бокс 420💰\n🥡 Супер Бокс 2500💰\n🎲 Кость 10000💰\n🪎 Сундук 6500💰\n💜 Ультра Харт 150000💰\n💟 Холик 125000💰\n🧠 Мозг 5000000💰",
             call.message.chat.id, call.message.message_id, reply_markup=item_shop_keyboard())
     
-    # ТОП
     elif call.data == "top":
         cursor.execute('SELECT username, clicks FROM users ORDER BY clicks DESC LIMIT 10')
         top = cursor.fetchall()
         text = "🏆 ТОП-10\n\n" + "\n".join([f"{i}. @{n} — {c} кликов" for i, (n, c) in enumerate(top, 1)])
         bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=main_keyboard())
     
-    # НАЗАД
     elif call.data == "back":
         bot.edit_message_text(
             f"📊 @{username}:\n🔨 {clicks} кликов\n💰 {coins} монет",
             call.message.chat.id, call.message.message_id, reply_markup=main_keyboard())
     
-    # ПОКУПКА ПРЕДМЕТОВ
     elif call.data.startswith("buy_item_"):
         item = call.data[9:]
         prices = {
@@ -429,7 +406,6 @@ def callback(call):
         else:
             bot.answer_callback_query(call.id, "❌ Не хватает!")
     
-    # ПОКУПКА СКИЛЛОВ
     elif call.data in ["buy_click", "buy_coin", "buy_crit", "buy_luck"]:
         markup, cp, cnp, crp, lp = skill_shop_keyboard(user_id)
         price = int({'buy_click': cp, 'buy_coin': cnp, 'buy_crit': crp, 'buy_luck': lp}[call.data])
@@ -450,19 +426,7 @@ def callback(call):
         else:
             bot.answer_callback_query(call.id, "❌ Не хватает или макс. уровень (50)!")
 
-# ========== ДЛЯ RENDER.COM ==========
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return "Бот работает!"
-
-def run_bot():
+# ЗАПУСК
+if __name__ == '__main__':
     print("✅ БОТ ЗАПУЩЕН!")
     bot.infinity_polling()
-
-if __name__ == '__main__':
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.start()
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
