@@ -4,7 +4,7 @@ import sqlite3
 import random
 
 # ===== НАСТРОЙКИ (ИЗМЕНИТЕ ЭТО!) =====
-TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'  # Вставьте сюда токен
+TOKEN = '8878924452:AAEBNzKEmTi9RqeoDoFNmQ802KPEkexHQAM'  # Вставьте сюда токен
 ADMIN_IDS = [7778727422]  # Вставьте свой Telegram ID
 # ======================================
 
