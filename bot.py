@@ -2,16 +2,22 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import sqlite3
 import random
-import os
 
-TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'  # Вставьте токен
-ADMIN_IDS = [7778727422]
+# ===== НАСТРОЙКИ (ИЗМЕНИТЕ ЭТО!) =====
+TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'  # Вставьте сюда токен
+ADMIN_IDS = [7778727422]  # Вставьте свой Telegram ID
+# ======================================
 
 bot = telebot.TeleBot(TOKEN)
 
+# ВАЖНО: отключаем вебхук, чтобы не было конфликта с кнопками
+bot.remove_webhook()
+
+# База данных
 conn = sqlite3.connect('clicker.db', check_same_thread=False)
 cursor = conn.cursor()
 
+# Таблица пользователей
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
@@ -24,6 +30,8 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT
 )
 ''')
+
+# Таблица инвентаря
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS inventory (
     user_id INTEGER,
@@ -69,6 +77,7 @@ def main_keyboard():
     )
     return markup
 
+# Клавиатура для магазина скиллов
 def skill_shop_keyboard(user_id):
     cursor.execute('SELECT click_level, coin_level, crit_level, luck_level, coins FROM users WHERE user_id = ?', (user_id,))
     click_lvl, coin_lvl, crit_lvl, luck_lvl, coins = cursor.fetchone()
@@ -426,7 +435,7 @@ def callback(call):
         else:
             bot.answer_callback_query(call.id, "❌ Не хватает или макс. уровень (50)!")
 
-# ЗАПУСК
+# ========== ЗАПУСК (БЕЗ FLASK) ==========
 if __name__ == '__main__':
     print("✅ БОТ ЗАПУЩЕН!")
     bot.infinity_polling()
