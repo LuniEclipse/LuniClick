@@ -5,7 +5,7 @@ import random
 import re
 
 # ===== НАСТРОЙКИ (ИЗМЕНИТЕ ЭТО!) =====
-TOKEN = '8878924452:AAH46fbx3BddywRvCZ-JDRgl8MGgKTP_UBQ'  # Вставьте сюда токен от @BotFather
+TOKEN = '8878924452:AAESshZV4YhInNNOR2YXwsMwwfqlVsxjCj8'  # Вставьте сюда токен от @BotFather
 ADMIN_IDS = [7778727422]  # Вставьте свой Telegram ID
 # ======================================
 
