@@ -481,6 +481,26 @@ def callback(call):
             call.message.chat.id, call.message.message_id, reply_markup=main_keyboard())
 
 # ЗАПУСК
-if __name__ == '__main__':
+# ========== ДЛЯ RENDER.COM ==========
+from flask import Flask
+import threading
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "Бот работает!"
+
+def run_bot():
     print("✅ БОТ ЗАПУЩЕН!")
     bot.infinity_polling()
+
+if __name__ == '__main__':
+    # Запускаем бота в отдельном потоке
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.start()
+    
+    # Запускаем Flask сервер (нужен для Render)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
