@@ -25,11 +25,22 @@ CREATE TABLE IF NOT EXISTS users (
     coins INTEGER DEFAULT 0,
     click_level INTEGER DEFAULT 1,
     coin_level INTEGER DEFAULT 1,
-    crit_level INTEGER DEFAULT 1,
-    luck_level INTEGER DEFAULT 1,
     username TEXT
 )
 ''')
+
+# Добавляем недостающие колонки для старых баз данных
+try:
+    cursor.execute('ALTER TABLE users ADD COLUMN crit_level INTEGER DEFAULT 1')
+    conn.commit()
+except:
+    pass
+
+try:
+    cursor.execute('ALTER TABLE users ADD COLUMN luck_level INTEGER DEFAULT 1')
+    conn.commit()
+except:
+    pass
 
 # Таблица инвентаря
 cursor.execute('''
