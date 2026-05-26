@@ -446,7 +446,29 @@ def callback(call):
         else:
             bot.answer_callback_query(call.id, "❌ Не хватает или макс. уровень (50)!")
 
-# ========== ЗАПУСК (БЕЗ FLASK) ==========
-if __name__ == '__main__':
+# bot.infinity_polling()========== ЗАПУСК (БЕЗ FLASK) ========
+# В самом конце bot.py
+from flask import Flask
+import threading
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "Бот работает!"
+
+def run_bot():
+    # Убираем вебхук на всякий случай
+    bot.remove_webhook()
     print("✅ БОТ ЗАПУЩЕН!")
     bot.infinity_polling()
+
+if __name__ == '__main__':
+    # Запускаем бота в отдельном потоке
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.start()
+    
+    # Запускаем Flask для healthcheck
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
